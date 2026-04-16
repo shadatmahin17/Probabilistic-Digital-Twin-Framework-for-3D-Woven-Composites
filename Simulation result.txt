@@ -1,0 +1,62 @@
+14.9s 1 0.00s - Debugger warning: It seems that frozen modules are being used, which may
+14.9s 2 0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off
+14.9s 3 0.00s - to python to disable frozen modules.
+14.9s 4 0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+16.2s 5 0.00s - Debugger warning: It seems that frozen modules are being used, which may
+16.2s 6 0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off
+16.2s 7 0.00s - to python to disable frozen modules.
+16.2s 8 0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+20.8s 9 
+20.8s 10 ======================================================================
+20.8s 11 LITERATURE-CALIBRATED DIGITAL TWIN FOR 3D WOVEN COMPOSITES
+20.8s 12 ======================================================================
+20.8s 13 All outputs saved to: /kaggle/working/digital_twin_literature_results
+20.8s 14 Matplotlib backend: Agg
+20.8s 15 
+20.8s 16 --------------------------------------------------
+20.8s 17 SIMULATION SUMMARY
+20.8s 18 --------------------------------------------------
+20.8s 19 Undamaged strength: 807.784 ± 126.315 MPa
+20.8s 20 CAI strength:       448.033 ± 68.551 MPa
+20.8s 21 Fatigue strength:   577.764 ± 70.755 MPa
+20.8s 22 Void fraction:      2.851 ± 1.145%
+20.8s 23 
+20.8s 24 CAI pass rate:      42.2%
+20.8s 25 CAI failure prob:   57.8%
+20.8s 26 
+20.8s 27 Validation RMSE:    2.0 MPa
+20.8s 28 Relative error:     0.4%
+20.8s 29 - Results CSV: digital_twin_literature_results/simulation_results.csv
+20.8s 30 - Summary CSV: digital_twin_literature_results/summary_metrics.csv
+20.8s 31 - Validation JSON: digital_twin_literature_results/validation_results.json
+20.8s 32 - LaTeX tables: digital_twin_literature_results/latex_tables.tex
+28.4s 33 
+28.4s 34 --------------------------------------------------
+28.4s 35 SAVED FIGURES
+28.4s 36 figure_void_vs_cai.png
+28.4s 37 figure_defect_vs_fatigue.png
+28.4s 38 figure_cai_distribution.png
+28.4s 39 figure_sensitivity_ranking.png
+28.4s 40 figure_reliability_distribution.png
+28.4s 41 figure_parameter_distributions.png
+28.4s 42 figure_defect_distributions.png
+28.4s 43 
+28.4s 44 ======================================================================
+28.4s 45 DIGITAL TWIN SIMULATION COMPLETED SUCCESSFULLY
+28.4s 46 ======================================================================
+28.4s 47 
+28.4s 48 Interactive figure window is not available in this environment.
+28.4s 49 Current backend: Agg
+28.4s 50 All figures were saved as PNG files in the output folder.
+33.1s 51 /usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\|'
+33.1s 52 cells[i][c] = re.sub('\\\\\|', '|', cell)
+33.4s 53 /usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\_'
+33.4s 54 text = re.sub(r'_', '\_', text) # Escape underscores in display text
+34.2s 55 /usr/local/lib/python3.12/dist-packages/traitlets/traitlets.py:2915: FutureWarning: --Exporter.preprocessors=["remove_papermill_header.RemovePapermillHeader"] for containers is deprecated in traitlets 5.0. You can pass `--Exporter.preprocessors item` ... multiple times to add items to a list.
+34.2s 56 warn(
+34.3s 57 [NbConvertApp] Converting notebook __notebook__.ipynb to notebook
+34.7s 58 [NbConvertApp] Writing 41552 bytes to __notebook__.ipynb
+38.0s 59 /usr/local/lib/python3.12/dist-packages/traitlets/traitlets.py:2915: FutureWarning: --Exporter.preprocessors=["nbconvert.preprocessors.ExtractOutputPreprocessor"] for containers is deprecated in traitlets 5.0. You can pass `--Exporter.preprocessors item` ... multiple times to add items to a list.
+38.0s 60 warn(
+38.1s 61 [NbConvertApp] Converting notebook __notebook__.ipynb to html
+39.4s 62 [NbConvertApp] Writing 429993 bytes to __results__.html

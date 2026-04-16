@@ -1,0 +1,62 @@
+% LaTeX tables for manuscript
+\begin{table}[h]
+\centering
+\caption{Parameter ranges (literature-based)}
+\begin{tabular}{lcc}
+\hline
+Parameter & Lower & Upper \\
+\hline
+fiber volume fraction & 0.48 & 0.6 \\
+binder density & 0.1 & 0.2 \\
+waviness & 0.02 & 0.08 \\
+braid angle deg & 25.0 & 40.0 \\
+thickness mm & 3.0 & 6.0 \\
+compaction pressure MPa & 0.2 & 1.5 \\
+resin flow rate & 0.5 & 2.0 \\
+cure temp deviation C & -10.0 & 15.0 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Performance summary}
+\begin{tabular}{lccc}
+\hline
+Metric & Mean & Std & Units \\
+\hline
+Undamaged strength & 807.8 & 126.3 & MPa \\
+CAI strength & 448.0 & 68.6 & MPa \\
+Fatigue strength & 577.8 & 70.8 & MPa \\
+Void fraction & 2.85 & 1.15 & \% \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Reliability metrics}
+\begin{tabular}{lc}
+\hline
+Metric & Value \\
+\hline
+CAI pass rate & 42.2\% \\
+CAI failure probability & 57.8\% \\
+Joint pass rate & 42.2\% \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Validation against literature}
+\begin{tabular}{lccc}
+\hline
+Metric & Simulated & Literature & Units \\
+\hline
+CAI strength & 448.0 & 450.0 & MPa \\
+Void fraction & 2.85 & 2.17 & \% \\
+RMSE & 2.0 & -- & MPa \\
+\hline
+\end{tabular}
+\end{table}

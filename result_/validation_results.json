@@ -1,0 +1,31 @@
+{
+  "cai_strength": {
+    "sim_mean": 448.0333710815545,
+    "lit_mean": 450.0,
+    "lit_range": [
+      430.0,
+      470.0
+    ],
+    "rmse": 1.9666289184455081,
+    "relative_error": 0.43702864854344625,
+    "within_range": true
+  },
+  "void_fraction": {
+    "sim_mean": 2.8506614646224864,
+    "lit_mean": 2.17,
+    "lit_range": [
+      1.0,
+      4.0
+    ],
+    "within_range": true
+  },
+  "undamaged_strength": {
+    "sim_min": 600.0,
+    "sim_max": 1156.3150103839596,
+    "lit_range": [
+      600.0,
+      1200.0
+    ],
+    "within_range": true
+  }
+}

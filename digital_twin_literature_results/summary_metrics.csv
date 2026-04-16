@@ -1,0 +1,27 @@
+Metric,Value
+Mean undamaged strength (MPa),807.7844304024231
+Std undamaged strength (MPa),126.31540359961991
+Mean CAI strength (MPa),448.0333710815545
+Std CAI strength (MPa),68.55137672070306
+Mean fatigue strength (MPa),577.7642793785163
+Std fatigue strength (MPa),70.75500216870667
+Mean void fraction (%),2.8506614646224864
+Std void fraction (%),1.1453297091317336
+CAI pass rate (%),42.233333333333334
+Fatigue pass rate (%),100.0
+Joint pass rate (%),42.233333333333334
+CAI failure probability (%),57.766666666666666
+Fatigue failure probability (%),0.0
+Joint failure probability (%),57.766666666666666
+Validation RMSE (MPa),1.9666289184455081
+Validation relative error (%),0.43702864854344625
+
+Sensitivity ranking,Abs(correlation),Signed correlation
+fiber_volume_fraction,0.4635,0.4635
+waviness,0.4527,-0.4527
+resin_flow_rate,0.2712,-0.2712
+compaction_pressure_MPa,0.2518,0.2518
+binder_density,0.1866,-0.1866
+braid_angle_deg,0.1290,-0.1290
+thickness_mm,0.1123,-0.1123
+cure_temp_deviation_C,0.0463,-0.0463
