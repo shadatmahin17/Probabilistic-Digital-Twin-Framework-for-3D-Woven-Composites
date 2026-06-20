@@ -1,7 +1,6 @@
 # Probabilistic Digital Twin Framework for 3D Woven and Braided Composites
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A simulation-based digital twin framework linking textile architecture, manufacturing defects, and structural performance of advanced composite materials. This repository contains the code used in the research study:
 
