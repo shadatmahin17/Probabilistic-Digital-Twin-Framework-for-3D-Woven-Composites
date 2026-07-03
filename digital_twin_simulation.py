@@ -2,7 +2,7 @@
 ===========================================================================
 LITERATURE-CALIBRATED PROBABILISTIC DIGITAL TWIN FOR 3D WOVEN/BRAIDED COMPOSITES
 ===========================================================================
-Author: Shadat Hossen Mahin
+Author: Shadat Hossen Mahin, Md. Touhidul Islam
 Version: Validated against experimental data from:
   - Ricks et al. (2022) – NASA Glenn
   - Shah et al. (2023) – Stochastic multiscale damage modelling
