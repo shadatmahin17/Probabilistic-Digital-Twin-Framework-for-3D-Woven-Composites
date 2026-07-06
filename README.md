@@ -103,14 +103,14 @@ If you use this code in your research, please cite the original work:
 
 ```bibtex
 @article{mahin2026digitaltwin,
-  title   = {Lifecycle Digital Twin Framework for 3D Woven and Braided Composites: Linking Textile Architecture, Manufacturing Defects, and Structural Performance},
+  title   = {Probabilistic Digital Twin Framework for 3D Woven and Braided Composites: Linking Textile Architecture, Manufacturing Defects, and Structural Performance},
   author  = {Mahin, Shadat Hossen},
   year    = {2026},
   note    = {GitHub repository: \url{https://github.com/shadatmahin17/Composite}}
 }
 ```
 
-Direct link to repository: [Digital-twin-3d-composites](https://github.com/shadatmahin17/Digital-twin-3d-composites.git)
+Direct link to repository: [Digital-twin-3d-composites](https://github.com/shadatmahin17/Probabilistic-Digital-Twin-Framework-for-3D-Woven-and-Braided-Composites.git)
 
 ---
 
