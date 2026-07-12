@@ -3,12 +3,19 @@
 LITERATURE-CALIBRATED PROBABILISTIC DIGITAL TWIN FOR 3D WOVEN COMPOSITES
 ===========================================================================
 Author: Shadat Hossen Mahin, Md. Touhidul Islam
-Version: Validated against experimental data from:
+Version: Validated (calibration-consistency check, not independent
+  validation — see manuscript Section 3.9) against experimental/literature
+  data from:
   - Ricks et al. (2022) – NASA Glenn
   - Shah et al. (2023) – Stochastic multiscale damage modelling
   - Ge et al. (2021) – Micro-CT based trans-scale damage analysis
   - Hu et al. (2020) – Impact resistance of 3D orthogonal composites
-  - Dai et al. (2016) – Multi-scale damage modelling
+  - Dai, S. & Cunningham, P.R. (2016), "Multi-scale damage modelling of
+    3D woven composites under uni-axial tension," Composite Structures,
+    142, 298-312, doi:10.1016/j.compstruct.2016.01.103
+    [resolves manuscript ref. 27 — verify the specific 1369/1281 MPa
+    unit-cell figures cited in Eq. 7's justification against the full
+    text before finalizing]
   - El-Dessouky & Saleh (2018) – 3D woven composites manufacturing
 
 This script:
@@ -35,10 +42,17 @@ def configure_matplotlib_backend():
     Try interactive backends first. If unavailable, fall back to Agg.
     This avoids crashes on headless servers / mobile / notebook / cloud systems.
     """
-    for backend in ( "TkAgg"):
+    for backend in ("TkAgg",):
         try:
             matplotlib.use(backend, force=True)
-            import matplotlib.pyplot as plt  # noqa: F401
+            import matplotlib.pyplot as plt
+            # matplotlib.use() only sets rcParams; the actual backend module
+            # (e.g. tkinter) is loaded lazily on first draw. Force that load
+            # now with a throwaway figure so a missing backend dependency is
+            # caught here and falls through to Agg, instead of raising later
+            # in the middle of the real plotting functions.
+            _test_fig = plt.figure()
+            plt.close(_test_fig)
             return backend
         except Exception:
             continue
@@ -65,6 +79,15 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Certification limits (MPa)
 CAI_LIMIT = 450.0
+# NOTE: FATIGUE_LIMIT is numerically identical to the lower clip bound applied
+# to fatigue_strength in predict_fatigue_knockdown() (np.clip(..., 350.0, 650.0)).
+# Because every sample is floored at exactly 350.0, fatigue_strength >= FATIGUE_LIMIT
+# is guaranteed for 100% of samples by construction, not as a result of the model's
+# physics. This is the root cause of the "no configuration fell below the fatigue
+# threshold" result reported in the manuscript (Table 6) — it is a modelling
+# artifact of the clip bounds, not a genuine reliability finding. Either lower
+# FATIGUE_LIMIT below 350.0, lower the clip floor below FATIGUE_LIMIT, or drop the
+# joint pass-rate metric until the fatigue sub-model is validated.
 FATIGUE_LIMIT = 350.0
 
 # Architecture bounds
@@ -335,10 +358,18 @@ def correlation_sensitivity(inputs, y, names):
 def validate_against_literature(cai_mean, void_mean, und_min, und_max):
     lit = {
         "cai_strength": {"mean": 450, "range": (430, 470)},
-        "void_fraction": {"mean": 2.17, "range": (1.0, 4.0)},
+        # 2.7% matches Shah et al. (2023), the source actually cited in the
+        # manuscript for this benchmark (mean 2.7 +/- 1.1%). The previous
+        # value here (2.17%) did not match either Shah et al. or Ge et al.
+        # (1.8-2.5%) and its origin could not be traced.
+        "void_fraction": {"mean": 2.7, "range": (1.0, 4.0)},
         "undamaged_strength": {"range": (600, 1200)},
     }
-    cai_rmse = np.abs(cai_mean - lit["cai_strength"]["mean"])
+    # Note: this is an absolute error (AE) between a single simulated mean and
+    # a single literature benchmark value — NOT a multi-sample RMSE. Naming it
+    # "ae" here (rather than "rmse") matches the terminology used in the
+    # manuscript (Section 3.9), which explicitly warns against this confusion.
+    cai_ae = np.abs(cai_mean - lit["cai_strength"]["mean"])
 
     validation = {
         "cai_strength": {
@@ -348,8 +379,8 @@ def validate_against_literature(cai_mean, void_mean, und_min, und_max):
                 float(lit["cai_strength"]["range"][0]),
                 float(lit["cai_strength"]["range"][1]),
             ],
-            "rmse": float(cai_rmse),
-            "relative_error": float((cai_rmse / lit["cai_strength"]["mean"]) * 100),
+            "ae": float(cai_ae),
+            "relative_error": float((cai_ae / lit["cai_strength"]["mean"]) * 100),
             "within_range": bool(
                 lit["cai_strength"]["range"][0] <= cai_mean <= lit["cai_strength"]["range"][1]
             ),
@@ -463,7 +494,7 @@ def export_summary_csv(results, sensitivity, reliability, validation, filename="
         writer.writerow(["CAI failure probability (%)", reliability["prob_fail_cai"] * 100])
         writer.writerow(["Fatigue failure probability (%)", reliability["prob_fail_fatigue"] * 100])
         writer.writerow(["Joint failure probability (%)", reliability["prob_fail_joint"] * 100])
-        writer.writerow(["Validation RMSE (MPa)", validation["cai_strength"]["rmse"]])
+        writer.writerow(["Validation AE (MPa)", validation["cai_strength"]["ae"]])
         writer.writerow(["Validation relative error (%)", validation["cai_strength"]["relative_error"]])
         writer.writerow([])
         writer.writerow(["Sensitivity ranking", "Abs(correlation)", "Signed correlation"])
@@ -508,7 +539,7 @@ def export_latex_tables(results, sensitivity, reliability, validation, filename=
         f.write("\\begin{tabular}{lccc}\n\\hline\nMetric & Simulated & Literature & Units \\\\\n\\hline\n")
         f.write(f"CAI strength & {validation['cai_strength']['sim_mean']:.1f} & {validation['cai_strength']['lit_mean']:.1f} & MPa \\\\\n")
         f.write(f"Void fraction & {validation['void_fraction']['sim_mean']:.2f} & {validation['void_fraction']['lit_mean']:.2f} & \\% \\\\\n")
-        f.write(f"RMSE & {validation['cai_strength']['rmse']:.1f} & -- & MPa \\\\\n")
+        f.write(f"AE (calibration-consistency check) & {validation['cai_strength']['ae']:.1f} & -- & MPa \\\\\n")
         f.write("\\hline\n\\end{tabular}\n\\end{table}\n")
     print(f"  - LaTeX tables: {path}")
 
@@ -743,7 +774,7 @@ def main():
     print(f"Void fraction:      {mean_std_text(results['defects']['void_fraction'] * 100)}%")
     print(f"\nCAI pass rate:      {results['certification']['cai_pass_rate'] * 100:.1f}%")
     print(f"CAI failure prob:   {reliability['prob_fail_cai'] * 100:.1f}%")
-    print(f"\nValidation RMSE:    {validation['cai_strength']['rmse']:.1f} MPa")
+    print(f"\nValidation AE:      {validation['cai_strength']['ae']:.1f} MPa (calibration-consistency check, not independent validation)")
     print(f"Relative error:     {validation['cai_strength']['relative_error']:.1f}%")
 
     export_results_csv(results)
