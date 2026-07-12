@@ -1,6 +1,6 @@
 """
 ===========================================================================
-LITERATURE-CALIBRATED PROBABILISTIC DIGITAL TWIN FOR 3D WOVEN/BRAIDED COMPOSITES
+LITERATURE-CALIBRATED PROBABILISTIC DIGITAL TWIN FOR 3D WOVEN COMPOSITES
 ===========================================================================
 Author: Shadat Hossen Mahin, Md. Touhidul Islam
 Version: Validated against experimental data from:
