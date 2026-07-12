@@ -2,10 +2,10 @@
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-A simulation-based digital twin framework linking textile architecture, manufacturing defects, and structural performance of advanced composite materials. This repository contains the code used in the research study:
+[A simulation-based digital twin framework linking textile architecture, manufacturing defects, and structural performance of advanced composite materials. This repository contains the code used in the research study:
 
 **Mahin, S. H. (2026).** *Probabilistic Digital Twin Framework for 3D Woven and Braided Composites: Linking Textile Architecture, Manufacturing Defects, and Structural Performance.*
-
+](https://doi.org/10.5281/zenodo.21220844)
 ---
 
 ## Overview
