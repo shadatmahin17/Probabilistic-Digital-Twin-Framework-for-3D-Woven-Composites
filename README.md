@@ -1,30 +1,33 @@
-# Probabilistic Digital Twin Framework for 3D Woven and Braided Composites
+# Probabilistic Digital Twin Framework for 3D Woven Composites
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-[A simulation-based digital twin framework linking textile architecture, manufacturing defects, and structural performance of advanced composite materials. This repository contains the code used in the research study:
+A simulation-based digital twin framework linking textile architecture, manufacturing defects, and structural performance of advanced composite materials. This repository contains the code used in the research study:
 
-**Mahin, S. H. (2026).** *Probabilistic Digital Twin Framework for 3D Woven and Braided Composites: Linking Textile Architecture, Manufacturing Defects, and Structural Performance.*
-](https://doi.org/10.5281/zenodo.21220844)
+Mahin, S. H., & Islam, M. T. (2026). *Probabilistic Digital Twin Framework for 3D Woven Composites: Linking Architecture, Defects, and Structural Performance.*
+[https://doi.org/10.5281/zenodo.21220844](https://doi.org/10.5281/zenodo.21220844)
+
 ---
 
 ## Overview
 
 The framework integrates four core modelling modules to capture the influence of manufacturing variability on composite performance:
 
-1. **Textile Architecture Model**  
+1. **Textile Architecture Model**
    – Fiber volume fraction, binder density, waviness, braid angle, thickness.
 
-2. **Manufacturing Process Model**  
+2. **Manufacturing Process Model**
    – Compaction pressure, resin flow rate, cure temperature deviation.
 
-3. **Defect Prediction Model**  
+3. **Defect Prediction Model**
    – Void fraction, resin‑rich regions, waviness amplification, defect severity index.
 
-4. **Structural Performance Model**  
+4. **Structural Performance Model**
    – Undamaged compressive strength, Compression‑After‑Impact (CAI) strength, fatigue knockdown.
 
 Uncertainty is propagated through a **Monte Carlo simulation** (typically 3000 samples), enabling sensitivity analysis, reliability assessment, and validation against experimental literature.
+
+All calibration data (architecture ranges, defect coefficients, and structural benchmarks) is drawn from 3D woven composite studies; the framework has not been calibrated or validated against braided composite data.
 
 ---
 
@@ -103,14 +106,15 @@ If you use this code in your research, please cite the original work:
 
 ```bibtex
 @article{mahin2026digitaltwin,
-  title   = {Probabilistic Digital Twin Framework for 3D Woven and Braided Composites: Linking Textile Architecture, Manufacturing Defects, and Structural Performance},
-  author  = {Mahin, Shadat Hossen},
+  title   = {Probabilistic Digital Twin Framework for 3D Woven Composites: Linking Textile Architecture, Manufacturing Defects, and Structural Performance},
+  author  = {Mahin, Shadat Hossen and Islam, Md. Touhidul},
   year    = {2026},
-  note    = {GitHub repository: \url{https://github.com/shadatmahin17/Composite}}
+  doi     = {10.5281/zenodo.21220844},
+  note    = {GitHub repository: \url{https://github.com/shadatmahin17/Probabilistic-Digital-Twin-Framework-for-3D-Woven-Composites}}
 }
 ```
 
-Direct link to repository: [Digital-twin-3d-composites](https://github.com/shadatmahin17/Probabilistic-Digital-Twin-Framework-for-3D-Woven-and-Braided-Composites.git)
+Direct link to repository: [Probabilistic-Digital-Twin-Framework-for-3D-Woven-Composites](https://github.com/shadatmahin17/Probabilistic-Digital-Twin-Framework-for-3D-Woven-Composites)
 
 ---
 
@@ -120,9 +124,11 @@ This project is licensed under the **MIT License** – see the [LICENSE](LICENSE
 
 ---
 
-## Author
+## Authors
 
-**Shadat Hossen Mahin**  
-Department of Textile Engineering  
-Research area: Aerospace Composite Structures  
-2026
+**Shadat Hossen Mahin**
+Department of Textile Engineering, University of Scholars
+Research area: Aerospace Composite Structures
+
+**Md. Touhidul Islam** (Corresponding Author)
+Department of Textile Engineering, Mawlana Bhashani Science and Technology University / University of Scholars
