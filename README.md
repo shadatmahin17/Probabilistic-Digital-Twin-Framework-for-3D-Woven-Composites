@@ -48,8 +48,8 @@ Uncertainty is propagated through a **Monte Carlo simulation** (typically 3000 s
 
 ```
 .
-├── digital_twin_simulation.py          # Main simulation script
-├── digital_twin_literature_results/    # Auto-generated output folder
+├── simulation_3D_woven.py         # Main simulation script
+├── simulation_3D_woven_results/    # Auto-generated output folder
 │   ├── figures/                        # All plots (PNG)
 │   │   ├── figure_void_vs_cai.png
 │   │   ├── figure_defect_vs_fatigue.png
@@ -82,8 +82,8 @@ Uncertainty is propagated through a **Monte Carlo simulation** (typically 3000 s
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/shadatmahin17/Probabilistic-Digital-Twin-Framework-for-3D-Woven-Composites.git
-   cd Probabilistic-Digital-Twin-Framework-for-3D-Woven-Composites
+   git clone https://github.com/shadatmahin17/Probabilistic-simulation-framework-Framework-for-3D-Woven-Composites.git
+   cd Probabilistic-simulation-framework-Framework-for-3D-Woven-Composites
    ```
 
 2. **Create and activate a virtual environment (recommended):**
@@ -114,7 +114,7 @@ matplotlib>=3.4.0
 To run the full simulation and generate all results and figures:
 
 ```bash
-python digital_twin_simulation.py
+python simulation_3D_woven.py
 ```
 
 ### What Happens When You Run
@@ -193,7 +193,7 @@ If you use this code in your research, please cite the original work:
   author  = {Mahin, Shadat Hossen and Islam, Md. Touhidul},
   year    = {2026},
   doi     = {10.5281/zenodo.21220844},
-  note    = {Available at: \url{https://github.com/shadatmahin17/Probabilistic-Digital-Twin-Framework-for-3D-Woven-Composites}}
+  note    = {Available at: \url{https://github.com/shadatmahin17/Probabilistic-simulation-framework-Framework-for-3D-Woven-Composites}}
 }
 ```
 
@@ -224,7 +224,7 @@ University of Scholars
 40 Kemal Ataturk Ave, Dhaka-1213, Bangladesh
 Email: touhidtex@ius.edu.bd
 
-Or open an issue on GitHub: [https://github.com/shadatmahin17/Probabilistic-Digital-Twin-Framework-for-3D-Woven-Composites/issues](https://github.com/shadatmahin17/Probabilistic-Digital-Twin-Framework-for-3D-Woven-Composites/issues)
+Or open an issue on GitHub: [https://github.com/shadatmahin17/Probabilistic-simulation-framework-Framework-for-3D-Woven-Composites](https://github.com/shadatmahin17/Probabilistic-simulation-framework-Framework-for-3D-Woven-Composites)
 
 ---
 
