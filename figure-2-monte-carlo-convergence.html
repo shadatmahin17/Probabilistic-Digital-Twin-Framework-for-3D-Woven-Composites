@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Figure 2: Monte Carlo Convergence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            padding: 35px 30px 25px;
+        }
+        .figure-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+            letter-spacing: 0.3px;
+        }
+        svg {
+            width: 100%;
+            height: auto;
+            background: white;
+            border-radius: 8px;
+        }
+        .caption {
+            margin-top: 22px;
+            padding: 18px 22px;
+            background: #f8f9fc;
+            border-left: 5px solid #1a1a2e;
+            border-radius: 4px;
+            font-size: 14.5px;
+            line-height: 1.7;
+            color: #2d2d44;
+        }
+        .caption strong { color: #1a1a2e; }
+        .note {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="figure-title">Monte Carlo Convergence Analysis</div>
+        <svg viewBox="0 0 820 510" xmlns="http://www.w3.org/2000/svg">
+            <rect width="820" height="510" fill="white"/>
+            <g transform="translate(95, 30)">
+                <!-- Gridlines -->
+                <line x1="0" y1="420" x2="700" y2="420" stroke="#e0e0e0" stroke-width="1"/>
+                <line x1="0" y1="336" x2="700" y2="336" stroke="#e0e0e0" stroke-width="0.8" stroke-dasharray="5,5"/>
+                <line x1="0" y1="252" x2="700" y2="252" stroke="#e0e0e0" stroke-width="0.8" stroke-dasharray="5,5"/>
+                <line x1="0" y1="168" x2="700" y2="168" stroke="#e0e0e0" stroke-width="0.8" stroke-dasharray="5,5"/>
+                <line x1="0" y1="84"  x2="700" y2="84"  stroke="#e0e0e0" stroke-width="0.8" stroke-dasharray="5,5"/>
+                <line x1="0" y1="0"   x2="700" y2="0"   stroke="#e0e0e0" stroke-width="0.8"/>
+                <rect x="0" y="0" width="700" height="420" fill="none" stroke="#ccc" stroke-width="1"/>
+
+                <!-- Y-axis labels -->
+                <text x="-12" y="424" text-anchor="end" font-size="12" fill="#444">400</text>
+                <text x="-12" y="340" text-anchor="end" font-size="12" fill="#444">420</text>
+                <text x="-12" y="256" text-anchor="end" font-size="12" fill="#444">440</text>
+                <text x="-12" y="172" text-anchor="end" font-size="12" fill="#444">460</text>
+                <text x="-12" y="88"  text-anchor="end" font-size="12" fill="#444">480</text>
+                <text x="-12" y="4"   text-anchor="end" font-size="12" fill="#444">500</text>
+
+                <!-- X-axis labels -->
+                <text x="0"   y="448" text-anchor="middle" font-size="12" fill="#444">0</text>
+                <text x="117" y="448" text-anchor="middle" font-size="12" fill="#444">500</text>
+                <text x="233" y="448" text-anchor="middle" font-size="12" fill="#444">1000</text>
+                <text x="350" y="448" text-anchor="middle" font-size="12" fill="#444">1500</text>
+                <text x="467" y="448" text-anchor="middle" font-size="12" fill="#444">2000</text>
+                <text x="583" y="448" text-anchor="middle" font-size="12" fill="#444">2500</text>
+                <text x="700" y="448" text-anchor="middle" font-size="12" fill="#444">3000</text>
+
+                <text x="350" y="478" text-anchor="middle" font-size="14" font-weight="700" fill="#222">Number of Samples</text>
+                <text x="-62" y="210" text-anchor="middle" font-size="14" font-weight="700" fill="#222" transform="rotate(-90, -62, 210)">Cumulative Mean CAI Strength (MPa)</text>
+
+                <!-- Converged region -->
+                <rect x="467" y="0" width="233" height="420" fill="rgba(46, 125, 50, 0.07)" stroke="none"/>
+                <line x1="467" y1="0" x2="467" y2="420" stroke="#2e7d32" stroke-width="1.8" stroke-dasharray="8,5"/>
+                <!-- Convergence label moved above the plot area, clear of the x-axis "2000" tick -->
+                <text x="467" y="-8" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="bold">Convergence (~2000 samples)</text>
+
+                <!-- Final mean line: 448 MPa -> y = 420-(448-400)/100*420 = 218.4 -->
+                <line x1="0" y1="218.4" x2="700" y2="218.4" stroke="#d62728" stroke-width="2" stroke-dasharray="8,5"/>
+                <!-- Final mean label moved inside the plot, right-aligned, and placed below the dashed line so it no longer overlaps it -->
+                <text x="690" y="233" text-anchor="end" font-size="12" fill="#d62728" font-weight="bold">Final Mean = 448.0 MPa</text>
+
+                <!-- ±1 SEM band (properly encloses the mean line; computed from the same
+                     seed=42, n=3000 Monte Carlo run as the Python figure, using
+                     SEM = cumulative_std / sqrt(n) rather than raw std, since raw std
+                     does not shrink with sample size and cannot show "convergence" -->
+                <polygon points="0.2,75.3 16.1,224.0 32.0,218.4 47.8,208.8 63.7,205.0 79.6,200.1 95.4,200.6 111.5,203.3 127.4,211.4 143.3,210.0 159.1,210.1 175.0,213.2 190.9,210.4 207.0,205.9 222.8,203.5 238.7,201.7 254.6,200.7 270.4,198.2 286.3,199.6 302.4,199.5 318.3,201.8 334.1,199.9 350.0,196.9 365.9,197.9 381.7,199.2 397.6,197.5 413.7,196.2 429.6,199.2 445.4,199.9 461.3,199.4 477.2,200.6 493.0,201.5 509.1,201.9 525.0,202.2 540.9,201.6 556.7,202.6 572.6,203.7 588.5,202.9 604.6,202.8 620.4,202.7 636.3,202.2 652.2,202.9 668.0,203.0 683.9,203.6 700.0,204.0 700.0,214.4 683.9,214.1 668.0,213.6 652.2,213.6 636.3,213.0 620.4,213.7 604.6,214.0 588.5,214.2 572.6,215.1 556.7,214.2 540.9,213.5 525.0,214.2 509.1,214.1 493.0,213.9 477.2,213.2 461.3,212.3 445.4,212.8 429.6,212.5 413.7,209.8 397.6,211.3 381.7,213.3 365.9,212.3 350.0,211.6 334.1,215.0 318.3,217.2 302.4,215.3 286.3,215.8 270.4,214.8 254.6,217.8 238.7,219.3 222.8,221.7 207.0,224.9 190.9,230.1 175.0,233.9 159.1,231.9 143.3,232.7 127.4,235.6 111.5,228.9 95.4,227.8 79.6,230.0 63.7,239.7 47.8,246.2 32.0,264.8 16.1,286.2 0.2,75.3"
+                    fill="rgba(31, 119, 180, 0.22)" stroke="none"/>
+
+                <!-- Cumulative mean line: same seed=42 run as the Python figure -->
+                <polyline points="0.2,75.3 16.1,255.1 32.0,241.6 47.8,227.5 63.7,222.3 79.6,215.0 95.4,214.2 111.5,216.1 127.4,223.5 143.3,221.4 159.1,221.0 175.0,223.6 190.9,220.2 207.0,215.4 222.8,212.6 238.7,210.5 254.6,209.3 270.4,206.5 286.3,207.7 302.4,207.4 318.3,209.5 334.1,207.5 350.0,204.3 365.9,205.1 381.7,206.3 397.6,204.4 413.7,203.0 429.6,205.9 445.4,206.3 461.3,205.8 477.2,206.9 493.0,207.7 509.1,208.0 525.0,208.2 540.9,207.6 556.7,208.4 572.6,209.4 588.5,208.6 604.6,208.4 620.4,208.2 636.3,207.6 652.2,208.2 668.0,208.3 683.9,208.8 700.0,209.2"
+                    stroke="#1f77b4" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+                <!-- Annotation -->
+                <defs>
+                    <marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
+                        <path d="M0,0 L8,4 L0,8 Z" fill="#2e7d32"/>
+                    </marker>
+                </defs>
+                <text x="530" y="170" font-size="11" fill="#2e7d32" font-weight="bold">Stable Plateau</text>
+                <line x1="500" y1="200" x2="540" y2="180" stroke="#2e7d32" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+                <!-- Legend -->
+                <rect x="10" y="320" width="185" height="95" rx="5" fill="white" stroke="#ccc" stroke-width="1.2"/>
+                <line x1="20" y1="335" x2="50" y2="335" stroke="#1f77b4" stroke-width="2.8"/>
+                <text x="58" y="340" font-size="11" fill="#333">Cumulative Mean</text>
+                <rect x="20" y="350" width="30" height="13" fill="rgba(31, 119, 180, 0.22)" stroke="#1f77b4" stroke-width="0.8"/>
+                <text x="58" y="360" font-size="11" fill="#333">±1 SEM</text>
+                <line x1="20" y1="375" x2="50" y2="375" stroke="#d62728" stroke-width="2" stroke-dasharray="5,4"/>
+                <text x="58" y="380" font-size="11" fill="#333">Final Mean</text>
+                <line x1="20" y1="395" x2="50" y2="395" stroke="#2e7d32" stroke-width="1.8" stroke-dasharray="7,4"/>
+                <text x="58" y="400" font-size="11" fill="#333">Convergence</text>
+
+                <!-- Info box -->
+                <rect x="10" y="10" width="200" height="58" rx="5" fill="#fdf5e6" stroke="#deb887" stroke-width="1.2"/>
+                <text x="18" y="26" font-size="11" font-weight="700" fill="#333">Final Mean: 448.0 MPa</text>
+                <text x="18" y="40" font-size="11" fill="#333">Final SEM: 1.2 MPa</text>
+                <text x="18" y="54" font-size="11" fill="#333">Convergence: ~2000 samples</text>
+            </g>
+        </svg>
+        <div class="caption">
+            <strong>Figure 2.</strong> Monte Carlo convergence analysis showing the cumulative moving average of CAI strength as a function of sample size. The shaded region indicates ±1 standard error of the mean (SEM), which narrows as more samples are drawn. A stable plateau is reached after approximately 2000 samples, with the cumulative mean converging to 448.0 MPa (SEM ≈ 1.2 MPa at n = 3000).
+        </div>
+    </div>
+</body>
+</html>
