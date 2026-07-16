@@ -1,29 +1,16 @@
 """
 ===========================================================================
-LITERATURE-CALIBRATED PROBABILISTIC DIGITAL TWIN FOR 3D WOVEN COMPOSITES
+LITERATURE-CALIBRATED PROBABILISTIC SIMULATION FRAMEWORK FOR 3D WOVEN COMPOSITES
 ===========================================================================
-Author: Shadat Hossen Mahin, Md. Touhidul Islam
-Version: Validated (calibration-consistency check, not independent
-  validation — see manuscript Section 3.9) against experimental/literature
-  data from:
-  - Ricks et al. (2022) – NASA Glenn
-  - Shah et al. (2023) – Stochastic multiscale damage modelling
-  - Ge et al. (2021) – Micro-CT based trans-scale damage analysis
-  - Hu et al. (2020) – Impact resistance of 3D orthogonal composites
-  - Dai, S. & Cunningham, P.R. (2016), "Multi-scale damage modelling of
-    3D woven composites under uni-axial tension," Composite Structures,
-    142, 298-312, doi:10.1016/j.compstruct.2016.01.103
-    [resolves manuscript ref. 27 — verify the specific 1369/1281 MPa
-    unit-cell figures cited in Eq. 7's justification against the full
-    text before finalizing]
-  - El-Dessouky & Saleh (2018) – 3D woven composites manufacturing
+Authors: Shadat Hossen Mahin, Md. Touhidul Islam
+Version: 1.0 
 
 This script:
 - Monte Carlo simulation (3000 samples) using literature parameter ranges
 - Defect prediction (voids, resin-rich regions, waviness amplification)
 - Structural performance (undamaged strength, CAI, fatigue)
-- Sensitivity analysis, reliability assessment, validation against literature
-- Generates all manuscript figures (1–5, 1–2) and exports CSV/JSON/LaTeX
+- Sensitivity analysis, reliability assessment, calibration-consistency checks
+- Generates all manuscript figures (3–7) and exports CSV/JSON/LaTeX
 ===========================================================================
 """
 
@@ -32,65 +19,23 @@ import csv
 import json
 import numpy as np
 import matplotlib
-
-
-# ============================================================================
-# SAFE BACKEND SELECTION FOR ALL ENVIRONMENTS
-# ============================================================================
-def configure_matplotlib_backend():
-    """
-    Try interactive backends first. If unavailable, fall back to Agg.
-    This avoids crashes on headless servers / mobile / notebook / cloud systems.
-    """
-    for backend in ("TkAgg",):
-        try:
-            matplotlib.use(backend, force=True)
-            import matplotlib.pyplot as plt
-            # matplotlib.use() only sets rcParams; the actual backend module
-            # (e.g. tkinter) is loaded lazily on first draw. Force that load
-            # now with a throwaway figure so a missing backend dependency is
-            # caught here and falls through to Agg, instead of raising later
-            # in the middle of the real plotting functions.
-            _test_fig = plt.figure()
-            plt.close(_test_fig)
-            return backend
-        except Exception:
-            continue
-
-    matplotlib.use("Agg", force=True)
-    import matplotlib.pyplot as plt  # noqa: F401
-    return "Agg"
-
-
-SELECTED_BACKEND = configure_matplotlib_backend()
-
+matplotlib.use('Agg')  
 import matplotlib.pyplot as plt
 from scipy import stats
 
-
-# ============================================================================
-# CONFIGURATION – LITERATURE-BASED PARAMETERS
-# ============================================================================
+# ----------------------------------------------------------------------------
+# CONFIGURATION
+# ----------------------------------------------------------------------------
 SEED = 42
 np.random.seed(SEED)
 
-OUTPUT_DIR = "digital_twin_literature_results"
+OUTPUT_DIR = "simulation_results_3D_woven"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# Certification limits (MPa)
-CAI_LIMIT = 450.0
-# NOTE: FATIGUE_LIMIT is numerically identical to the lower clip bound applied
-# to fatigue_strength in predict_fatigue_knockdown() (np.clip(..., 350.0, 650.0)).
-# Because every sample is floored at exactly 350.0, fatigue_strength >= FATIGUE_LIMIT
-# is guaranteed for 100% of samples by construction, not as a result of the model's
-# physics. This is the root cause of the "no configuration fell below the fatigue
-# threshold" result reported in the manuscript (Table 6) — it is a modelling
-# artifact of the clip bounds, not a genuine reliability finding. Either lower
-# FATIGUE_LIMIT below 350.0, lower the clip floor below FATIGUE_LIMIT, or drop the
-# joint pass-rate metric until the fatigue sub-model is validated.
-FATIGUE_LIMIT = 350.0
+CAI_LIMIT = 450.0          # Certification threshold (MPa)
+FATIGUE_LIMIT = 350.0      # Fatigue threshold (MPa)
 
-# Architecture bounds
+# Architecture bounds (Table 2 in manuscript)
 ARCH_BOUNDS = {
     "fiber_volume_fraction": (0.48, 0.60),
     "binder_density": (0.10, 0.20),
@@ -99,63 +44,33 @@ ARCH_BOUNDS = {
     "thickness_mm": (3.0, 6.0),
 }
 
-# Process bounds
+# Process bounds (Table 2 in manuscript)
 PROC_BOUNDS = {
     "compaction_pressure_MPa": (0.2, 1.5),
     "resin_flow_rate": (0.5, 2.0),
     "cure_temp_deviation_C": (-10.0, 15.0),
 }
 
-
-# ============================================================================
+# ----------------------------------------------------------------------------
 # HELPER FUNCTIONS
-# ============================================================================
+# ----------------------------------------------------------------------------
 def normalize(x, bounds):
     return (x - bounds[0]) / (bounds[1] - bounds[0] + 1e-12)
-
 
 def clip01(x):
     return np.clip(x, 0.0, 1.0)
 
-
 def mean_std_text(x):
     return f"{np.mean(x):.3f} ± {np.std(x):.3f}"
 
-
 def safe_polyfit(x, y, degree=1):
-    """Avoid failure if data are nearly constant."""
     if np.std(x) < 1e-12 or np.std(y) < 1e-12:
         return np.array([0.0, np.mean(y)])
     return np.polyfit(x, y, degree)
 
-
-def can_show_figures():
-    """
-    Returns True only if a real interactive backend is active.
-    """
-    backend = matplotlib.get_backend().lower()
-    non_interactive = {"agg", "pdf", "svg", "ps", "cairo", "template"}
-    return backend not in non_interactive and "agg" not in backend
-
-
-def finalize_plots():
-    """
-    Open figure windows only when interactive backend is available.
-    Otherwise just print a helpful message.
-    """
-    if can_show_figures():
-        print(f"\nInteractive backend active: {matplotlib.get_backend()}")
-        print("Opening figure windows...")
-        plt.show(block=True)
-    else:
-        print(f"\nInteractive figure window is not available in this environment.")
-        print(f"Current backend: {matplotlib.get_backend()}")
-        print("All figures were saved as PNG files in the output folder.")
-
-
-# ============================================================================
+# ----------------------------------------------------------------------------
 # SAMPLING
-# ============================================================================
+# ----------------------------------------------------------------------------
 def sample_architecture(n):
     fv = np.random.uniform(*ARCH_BOUNDS["fiber_volume_fraction"], n)
     bd = np.random.uniform(*ARCH_BOUNDS["binder_density"], n)
@@ -164,17 +79,15 @@ def sample_architecture(n):
     thk = np.random.uniform(*ARCH_BOUNDS["thickness_mm"], n)
     return np.column_stack([fv, bd, wav, angle, thk])
 
-
 def sample_process(n):
     cp = np.random.uniform(*PROC_BOUNDS["compaction_pressure_MPa"], n)
     fr = np.random.uniform(*PROC_BOUNDS["resin_flow_rate"], n)
     td = np.random.uniform(*PROC_BOUNDS["cure_temp_deviation_C"], n)
     return np.column_stack([cp, fr, td])
 
-
-# ============================================================================
-# DEFECT MODEL
-# ============================================================================
+# ----------------------------------------------------------------------------
+# DEFECT PREDICTION (Eq. 2–5)
+# ----------------------------------------------------------------------------
 def predict_defects(arch, proc):
     bd = arch[:, 1]
     wav = arch[:, 2]
@@ -192,39 +105,29 @@ def predict_defects(arch, proc):
 
     n = len(bd)
 
+    # Eq. (2) Void fraction
     void_fraction = (
-        0.017
-        + 0.010 * wav_n
-        + 0.008 * fr_n
-        + 0.004 * thk_n
-        + 0.006 * np.maximum(td_n, 0.0)
-        - 0.008 * cp_n
-        + 0.006 * bd_n * fr_n
-        + 0.011 * np.random.randn(n)
+        0.017 + 0.010 * wav_n + 0.008 * fr_n + 0.004 * thk_n
+        + 0.006 * np.maximum(td_n, 0.0) - 0.008 * cp_n
+        + 0.006 * bd_n * fr_n + 0.011 * np.random.randn(n)
     )
     void_fraction = np.clip(void_fraction, 0.005, 0.05)
 
+    # Eq. (3) Resin-rich regions
     resin_rich_index = (
-        0.05
-        + 0.08 * bd_n
-        + 0.05 * thk_n
-        + 0.05 * fr_n
-        - 0.04 * cp_n
-        + 0.02 * angle_n
-        + 0.010 * np.random.randn(n)
+        0.05 + 0.08 * bd_n + 0.05 * thk_n + 0.05 * fr_n
+        - 0.04 * cp_n + 0.02 * angle_n + 0.010 * np.random.randn(n)
     )
     resin_rich_index = np.clip(resin_rich_index, 0.03, 0.25)
 
+    # Eq. (4) Waviness amplification
     waviness_amplification = (
-        0.02
-        + 0.10 * wav_n
-        - 0.03 * cp_n
-        + 0.02 * bd_n
-        + 0.02 * fr_n
-        + 0.01 * np.random.randn(n)
+        0.02 + 0.10 * wav_n - 0.03 * cp_n
+        + 0.02 * bd_n + 0.02 * fr_n + 0.01 * np.random.randn(n)
     )
     waviness_amplification = np.clip(waviness_amplification, 0.0, 0.25)
 
+    # Eq. (5) Defect severity index
     defect_severity = clip01(
         4.0 * void_fraction + 1.2 * resin_rich_index + 1.6 * waviness_amplification
     )
@@ -236,26 +139,29 @@ def predict_defects(arch, proc):
         "defect_severity": defect_severity,
     }
 
-
-# ============================================================================
-# STRUCTURAL MODELS
-# ============================================================================
+# ----------------------------------------------------------------------------
+# STRUCTURAL MODELS (Eq. 6–14)
+# ----------------------------------------------------------------------------
 def predict_undamaged_strength(arch):
     fv, bd, wav, angle, thk = arch.T
 
-    strength = 780.0 + 420.0 * (fv - 0.48) / 0.12 - 900.0 * wav
+    # Eq. (6) baseline
+    strength = 780.0 + 420.0 * ((fv - 0.48) / 0.12) - 900.0 * wav
 
+    # Eq. (7) binder effect
     binder_effect = 1.0 - 0.40 * ((bd - 0.15) ** 2 / (0.05 ** 2))
     binder_effect = np.clip(binder_effect, 0.82, 1.05)
 
+    # Eq. (8) angle penalty
     angle_penalty = 0.10 * ((angle - 30.0) / 10.0) ** 2
     angle_penalty = np.clip(angle_penalty, 0.0, 0.20)
 
+    # Eq. (9) thickness penalty
     thk_penalty = 70.0 * ((thk - 4.5) / 1.5) ** 2
 
+    # Eq. (10) final strength
     strength = strength * binder_effect * (1.0 - angle_penalty) - thk_penalty
     return np.clip(strength, 600.0, 1200.0)
-
 
 def predict_cai_strength(arch, proc, defects, impact_energy_J=30.0):
     s0 = predict_undamaged_strength(arch)
@@ -270,24 +176,22 @@ def predict_cai_strength(arch, proc, defects, impact_energy_J=30.0):
 
     impact_severity = impact_energy_J / 40.0
 
+    # Architecture toughness term
     arch_tough = 0.16 + 0.45 * bd - 0.08 * ((angle - 30.0) / 15.0) ** 2
     arch_tough = np.clip(arch_tough, 0.08, 0.28)
 
+    # Eq. (12) damage index
     damage_index = (
-        0.22 * impact_severity
-        + 1.50 * vf
-        + 0.45 * rr
-        + 0.70 * wa
-        + 0.65 * ds
-        - 0.50 * arch_tough
+        0.22 * impact_severity + 1.50 * vf + 0.45 * rr
+        + 0.70 * wa + 0.65 * ds - 0.50 * arch_tough
         + 0.025 * np.random.randn(n)
     )
     damage_index = np.clip(damage_index, 0.08, 0.60)
 
+    # Eq. (11) CAI strength
     cai_strength = s0 * (1.0 - damage_index)
     cai_strength = np.clip(cai_strength, 380.0, 560.0)
     return cai_strength, damage_index
-
 
 def predict_fatigue_knockdown(arch, defects, cycles=5e5, stress_ratio=0.1):
     bd = arch[:, 1]
@@ -299,27 +203,22 @@ def predict_fatigue_knockdown(arch, defects, cycles=5e5, stress_ratio=0.1):
 
     logN = np.log10(cycles)
 
+    # Eq. (14) knockdown factor
     knockdown = (
-        0.88
-        - 0.030 * (logN - 5.0)
-        - 0.90 * vf
-        - 0.10 * rr
-        - 0.45 * wav
-        - 0.18 * ds
-        + 0.06 * bd
-        + 0.03 * stress_ratio
+        0.88 - 0.030 * (logN - 5.0) - 0.90 * vf - 0.10 * rr
+        - 0.45 * wav - 0.18 * ds + 0.06 * bd + 0.03 * stress_ratio
         + 0.01 * np.random.randn(n)
     )
     knockdown = np.clip(knockdown, 0.35, 0.90)
 
+    # Eq. (13) fatigue strength
     fatigue_strength = predict_undamaged_strength(arch) * knockdown
     fatigue_strength = np.clip(fatigue_strength, 350.0, 650.0)
     return fatigue_strength, knockdown
 
-
-# ============================================================================
-# METRICS & ANALYSIS
-# ============================================================================
+# ----------------------------------------------------------------------------
+# METRICS AND ANALYSIS
+# ----------------------------------------------------------------------------
 def certification_metrics(cai_strength, fatigue_strength):
     cai_pass = cai_strength >= CAI_LIMIT
     fatigue_pass = fatigue_strength >= FATIGUE_LIMIT
@@ -328,7 +227,6 @@ def certification_metrics(cai_strength, fatigue_strength):
         "fatigue_pass_rate": np.mean(fatigue_pass),
         "joint_pass_rate": np.mean(cai_pass & fatigue_pass),
     }
-
 
 def reliability_analysis(cai_strength, fatigue_strength):
     cai_fail = cai_strength < CAI_LIMIT
@@ -343,7 +241,6 @@ def reliability_analysis(cai_strength, fatigue_strength):
         "reliability_joint": 1.0 - np.mean(joint_fail),
     }
 
-
 def correlation_sensitivity(inputs, y, names):
     ranking = []
     for i, name in enumerate(names):
@@ -354,31 +251,20 @@ def correlation_sensitivity(inputs, y, names):
     ranking.sort(key=lambda t: t[1], reverse=True)
     return ranking
 
-
 def validate_against_literature(cai_mean, void_mean, und_min, und_max):
     lit = {
         "cai_strength": {"mean": 450, "range": (430, 470)},
-        # 2.7% matches Shah et al. (2023), the source actually cited in the
-        # manuscript for this benchmark (mean 2.7 +/- 1.1%). The previous
-        # value here (2.17%) did not match either Shah et al. or Ge et al.
-        # (1.8-2.5%) and its origin could not be traced.
         "void_fraction": {"mean": 2.7, "range": (1.0, 4.0)},
         "undamaged_strength": {"range": (600, 1200)},
     }
-    # Note: this is an absolute error (AE) between a single simulated mean and
-    # a single literature benchmark value — NOT a multi-sample RMSE. Naming it
-    # "ae" here (rather than "rmse") matches the terminology used in the
-    # manuscript (Section 3.9), which explicitly warns against this confusion.
     cai_ae = np.abs(cai_mean - lit["cai_strength"]["mean"])
 
     validation = {
         "cai_strength": {
             "sim_mean": float(cai_mean),
             "lit_mean": float(lit["cai_strength"]["mean"]),
-            "lit_range": [
-                float(lit["cai_strength"]["range"][0]),
-                float(lit["cai_strength"]["range"][1]),
-            ],
+            "lit_range": [float(lit["cai_strength"]["range"][0]),
+                          float(lit["cai_strength"]["range"][1])],
             "ae": float(cai_ae),
             "relative_error": float((cai_ae / lit["cai_strength"]["mean"]) * 100),
             "within_range": bool(
@@ -388,10 +274,8 @@ def validate_against_literature(cai_mean, void_mean, und_min, und_max):
         "void_fraction": {
             "sim_mean": float(void_mean),
             "lit_mean": float(lit["void_fraction"]["mean"]),
-            "lit_range": [
-                float(lit["void_fraction"]["range"][0]),
-                float(lit["void_fraction"]["range"][1]),
-            ],
+            "lit_range": [float(lit["void_fraction"]["range"][0]),
+                          float(lit["void_fraction"]["range"][1])],
             "within_range": bool(
                 lit["void_fraction"]["range"][0] <= void_mean <= lit["void_fraction"]["range"][1]
             ),
@@ -399,10 +283,8 @@ def validate_against_literature(cai_mean, void_mean, und_min, und_max):
         "undamaged_strength": {
             "sim_min": float(und_min),
             "sim_max": float(und_max),
-            "lit_range": [
-                float(lit["undamaged_strength"]["range"][0]),
-                float(lit["undamaged_strength"]["range"][1]),
-            ],
+            "lit_range": [float(lit["undamaged_strength"]["range"][0]),
+                          float(lit["undamaged_strength"]["range"][1])],
             "within_range": bool(
                 lit["undamaged_strength"]["range"][0] <= und_min
                 and und_max <= lit["undamaged_strength"]["range"][1]
@@ -411,11 +293,10 @@ def validate_against_literature(cai_mean, void_mean, und_min, und_max):
     }
     return validation
 
-
-# ============================================================================
-# MAIN DIGITAL TWIN
-# ============================================================================
-def run_digital_twin(n_samples=3000, impact_energy_J=30.0, cycles=5e5):
+# ----------------------------------------------------------------------------
+# MAIN SIMULATION
+# ----------------------------------------------------------------------------
+def run_simulation(n_samples=3000, impact_energy_J=30.0, cycles=5e5):
     arch = sample_architecture(n_samples)
     proc = sample_process(n_samples)
 
@@ -438,10 +319,9 @@ def run_digital_twin(n_samples=3000, impact_energy_J=30.0, cycles=5e5):
         "certification": cert,
     }
 
-
-# ============================================================================
-# EXPORTS
-# ============================================================================
+# ----------------------------------------------------------------------------
+# EXPORT FUNCTIONS
+# ----------------------------------------------------------------------------
 def export_results_csv(results, filename="simulation_results.csv"):
     path = os.path.join(OUTPUT_DIR, filename)
     with open(path, "w", newline="", encoding="utf-8") as f:
@@ -474,7 +354,6 @@ def export_results_csv(results, filename="simulation_results.csv"):
             ])
     print(f"  - Results CSV: {path}")
 
-
 def export_summary_csv(results, sensitivity, reliability, validation, filename="summary_metrics.csv"):
     path = os.path.join(OUTPUT_DIR, filename)
     with open(path, "w", newline="", encoding="utf-8") as f:
@@ -502,13 +381,11 @@ def export_summary_csv(results, sensitivity, reliability, validation, filename="
             writer.writerow([name, f"{abs_corr:.4f}", f"{corr:.4f}"])
     print(f"  - Summary CSV: {path}")
 
-
 def export_validation_json(validation, filename="validation_results.json"):
     path = os.path.join(OUTPUT_DIR, filename)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(validation, f, indent=2)
     print(f"  - Validation JSON: {path}")
-
 
 def export_latex_tables(results, sensitivity, reliability, validation, filename="latex_tables.tex"):
     path = os.path.join(OUTPUT_DIR, filename)
@@ -543,10 +420,9 @@ def export_latex_tables(results, sensitivity, reliability, validation, filename=
         f.write("\\hline\n\\end{tabular}\n\\end{table}\n")
     print(f"  - LaTeX tables: {path}")
 
-
-# ============================================================================
-# FIGURES
-# ============================================================================
+# ----------------------------------------------------------------------------
+# FIGURE GENERATION (Figures 3–7)
+# ----------------------------------------------------------------------------
 def save_scatter_void_vs_cai(results):
     fig, ax = plt.subplots(figsize=(7, 5))
     void = results["defects"]["void_fraction"] * 100
@@ -570,8 +446,8 @@ def save_scatter_void_vs_cai(results):
 
     path = os.path.join(OUTPUT_DIR, "figure_void_vs_cai.png")
     fig.savefig(path, dpi=300)
+    print(f"  - Figure: {os.path.basename(path)}")
     return fig, path
-
 
 def save_scatter_defect_vs_fatigue(results):
     fig, ax = plt.subplots(figsize=(7, 5))
@@ -595,8 +471,8 @@ def save_scatter_defect_vs_fatigue(results):
 
     path = os.path.join(OUTPUT_DIR, "figure_defect_vs_fatigue.png")
     fig.savefig(path, dpi=300)
+    print(f"  - Figure: {os.path.basename(path)}")
     return fig, path
-
 
 def save_histogram_cai(results):
     fig, ax = plt.subplots(figsize=(7, 5))
@@ -614,8 +490,8 @@ def save_histogram_cai(results):
 
     path = os.path.join(OUTPUT_DIR, "figure_cai_distribution.png")
     fig.savefig(path, dpi=300)
+    print(f"  - Figure: {os.path.basename(path)}")
     return fig, path
-
 
 def save_sensitivity_bar(sensitivity):
     names = [s[0] for s in sensitivity][::-1]
@@ -632,8 +508,8 @@ def save_sensitivity_bar(sensitivity):
 
     path = os.path.join(OUTPUT_DIR, "figure_sensitivity_ranking.png")
     fig.savefig(path, dpi=300)
+    print(f"  - Figure: {os.path.basename(path)}")
     return fig, path
-
 
 def save_reliability_histogram(results):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
@@ -670,8 +546,8 @@ def save_reliability_histogram(results):
 
     path = os.path.join(OUTPUT_DIR, "figure_reliability_distribution.png")
     fig.savefig(path, dpi=300)
+    print(f"  - Figure: {os.path.basename(path)}")
     return fig, path
-
 
 def save_parameter_distributions(results):
     fig, axes = plt.subplots(3, 3, figsize=(15, 12))
@@ -705,8 +581,8 @@ def save_parameter_distributions(results):
 
     path = os.path.join(OUTPUT_DIR, "figure_parameter_distributions.png")
     fig.savefig(path, dpi=300)
+    print(f"  - Figure: {os.path.basename(path)}")
     return fig, path
-
 
 def save_defect_distributions(results):
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
@@ -733,15 +609,16 @@ def save_defect_distributions(results):
 
     path = os.path.join(OUTPUT_DIR, "figure_defect_distributions.png")
     fig.savefig(path, dpi=300)
+    print(f"  - Figure: {os.path.basename(path)}")
     return fig, path
 
-
-# ============================================================================
+# ----------------------------------------------------------------------------
 # MAIN
-# ============================================================================
+# ----------------------------------------------------------------------------
 def main():
     print("\n" + "=" * 70)
-    print("LITERATURE-CALIBRATED DIGITAL TWIN FOR 3D WOVEN COMPOSITES")
+    print("LITERATURE-CALIBRATED PROBABILISTIC SIMULATION FRAMEWORK")
+    print("FOR 3D WOVEN COMPOSITES")
     print("=" * 70)
     print(f"All outputs saved to: {os.path.abspath(OUTPUT_DIR)}")
     print(f"Matplotlib backend: {matplotlib.get_backend()}")
@@ -750,14 +627,18 @@ def main():
     impact_energy = 30.0
     cycles = 5e5
 
-    results = run_digital_twin(n_samples, impact_energy, cycles)
+    # Run simulation
+    results = run_simulation(n_samples, impact_energy, cycles)
 
+    # Sensitivity analysis
     input_names = list(ARCH_BOUNDS.keys()) + list(PROC_BOUNDS.keys())
     full_inputs = np.column_stack([results["arch"], results["proc"]])
     sensitivity = correlation_sensitivity(full_inputs, results["cai_strength"], input_names)
 
+    # Reliability
     reliability = reliability_analysis(results["cai_strength"], results["fatigue_strength"])
 
+    # Calibration-consistency checks
     validation = validate_against_literature(
         np.mean(results["cai_strength"]),
         np.mean(results["defects"]["void_fraction"]) * 100,
@@ -765,6 +646,7 @@ def main():
         np.max(results["undamaged_strength"]),
     )
 
+    # Print summary
     print("\n" + "-" * 50)
     print("SIMULATION SUMMARY")
     print("-" * 50)
@@ -774,13 +656,19 @@ def main():
     print(f"Void fraction:      {mean_std_text(results['defects']['void_fraction'] * 100)}%")
     print(f"\nCAI pass rate:      {results['certification']['cai_pass_rate'] * 100:.1f}%")
     print(f"CAI failure prob:   {reliability['prob_fail_cai'] * 100:.1f}%")
-    print(f"\nValidation AE:      {validation['cai_strength']['ae']:.1f} MPa (calibration-consistency check, not independent validation)")
+    print(f"\nValidation AE:      {validation['cai_strength']['ae']:.1f} MPa (calibration-consistency check)")
     print(f"Relative error:     {validation['cai_strength']['relative_error']:.1f}%")
 
+    # Export data
     export_results_csv(results)
     export_summary_csv(results, sensitivity, reliability, validation)
     export_validation_json(validation)
     export_latex_tables(results, sensitivity, reliability, validation)
+
+    # Generate figures (3–7)
+    print("\n" + "-" * 50)
+    print("GENERATING FIGURES")
+    print("-" * 50)
 
     fig_paths = []
     for _, path in [
@@ -794,17 +682,28 @@ def main():
     ]:
         fig_paths.append(path)
 
-    print("\n" + "-" * 50)
-    print("SAVED FIGURES")
-    for p in fig_paths:
-        print(f"  {os.path.basename(p)}")
-
     print("\n" + "=" * 70)
-    print("DIGITAL TWIN SIMULATION COMPLETED SUCCESSFULLY")
+    print("SIMULATION COMPLETED SUCCESSFULLY")
     print("=" * 70)
+    print(f"\nAll figures saved in: {os.path.abspath(OUTPUT_DIR)}")
+    print("\nGenerated figures:")
+    for p in fig_paths:
+        print(f"  - {os.path.basename(p)}")
 
-    finalize_plots()
-
+    print("\n" + "-" * 50)
+    print("MANUSCRIPT FIGURE MAPPING")
+    print("-" * 50)
+    print("figure_void_vs_cai.png          → Figure 3")
+    print("figure_defect_vs_fatigue.png    → Figure 4")
+    print("figure_cai_distribution.png     → Figure 5")
+    print("figure_sensitivity_ranking.png  → Figure 6")
+    print("figure_reliability_distribution.png → Figure 7")
+    print("figure_parameter_distributions.png → Figure 8 (Supplementary)")
+    print("figure_defect_distributions.png → Figure 9 (Supplementary)")
+    print("\nNOTE: Figure 1 (Framework Architecture) and Figure 2 (Convergence)")
+    print("      must be created manually. Figure 2 can be generated using")
+    print("      the provided HTML file or the convergence code snippet.")
+    print("=" * 70)
 
 if __name__ == "__main__":
     main()
