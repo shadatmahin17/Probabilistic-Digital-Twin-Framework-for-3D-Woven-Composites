@@ -3,7 +3,7 @@
 LITERATURE-CALIBRATED PROBABILISTIC SIMULATION FRAMEWORK FOR 3D WOVEN COMPOSITES
 ===========================================================================
 Authors: Shadat Hossen Mahin, Md. Touhidul Islam
-Version: 1.0 
+Version: 1.0
 
 This script:
 - Monte Carlo simulation (3000 samples) using literature parameter ranges
@@ -35,12 +35,12 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 CAI_LIMIT = 450.0          # Certification threshold (MPa)
 FATIGUE_LIMIT = 350.0      # Fatigue threshold (MPa)
 
-# Architecture bounds (Table 2 in manuscript)
+# Architecture bounds (Table 2 in manuscript - Updated yarn nomenclature)
 ARCH_BOUNDS = {
     "fiber_volume_fraction": (0.48, 0.60),
     "binder_density": (0.10, 0.20),
     "waviness": (0.02, 0.08),
-    "braid_angle_deg": (25.0, 40.0),
+    "yarn_orientation_angle_deg": (25.0, 40.0),
     "thickness_mm": (3.0, 6.0),
 }
 
@@ -75,7 +75,7 @@ def sample_architecture(n):
     fv = np.random.uniform(*ARCH_BOUNDS["fiber_volume_fraction"], n)
     bd = np.random.uniform(*ARCH_BOUNDS["binder_density"], n)
     wav = np.random.uniform(*ARCH_BOUNDS["waviness"], n)
-    angle = np.random.uniform(*ARCH_BOUNDS["braid_angle_deg"], n)
+    angle = np.random.uniform(*ARCH_BOUNDS["yarn_orientation_angle_deg"], n)
     thk = np.random.uniform(*ARCH_BOUNDS["thickness_mm"], n)
     return np.column_stack([fv, bd, wav, angle, thk])
 
@@ -97,7 +97,7 @@ def predict_defects(arch, proc):
 
     bd_n = normalize(bd, ARCH_BOUNDS["binder_density"])
     wav_n = normalize(wav, ARCH_BOUNDS["waviness"])
-    angle_n = normalize(angle, ARCH_BOUNDS["braid_angle_deg"])
+    angle_n = normalize(angle, ARCH_BOUNDS["yarn_orientation_angle_deg"])
     thk_n = normalize(thk, ARCH_BOUNDS["thickness_mm"])
     cp_n = normalize(cp, PROC_BOUNDS["compaction_pressure_MPa"])
     fr_n = normalize(fr, PROC_BOUNDS["resin_flow_rate"])
@@ -328,7 +328,7 @@ def export_results_csv(results, filename="simulation_results.csv"):
         writer = csv.writer(f)
         writer.writerow([
             "fiber_volume_fraction", "binder_density", "waviness",
-            "braid_angle_deg", "thickness_mm", "compaction_pressure_MPa",
+            "yarn_orientation_angle_deg", "thickness_mm", "compaction_pressure_MPa",
             "resin_flow_rate", "cure_temp_deviation_C", "void_fraction_%",
             "resin_rich_index", "waviness_amplification", "defect_severity",
             "undamaged_strength_MPa", "damage_index", "CAI_strength_MPa",
@@ -436,6 +436,12 @@ def save_scatter_void_vs_cai(results):
     ax.plot(xline, p(xline), "r--", label=f"Trend: y={z[0]:.1f}x+{z[1]:.1f}")
 
     ax.axhspan(430, 470, alpha=0.2, color="green", label="Ricks et al. range")
+    
+    # Add annotation clarifying clipping boundaries
+    ax.text(0.05, 0.95, "Data clusters at 380 & 560 MPa reflect model clipping boundaries", 
+            transform=ax.transAxes, fontsize=8, color="dimgray", style="italic",
+            verticalalignment="top")
+
     ax.set_xlabel("Void Fraction (%)")
     ax.set_ylabel("CAI Strength (MPa)")
     ax.set_title("Void Fraction vs. CAI Strength")
@@ -451,7 +457,7 @@ def save_scatter_void_vs_cai(results):
 
 def save_scatter_defect_vs_fatigue(results):
     fig, ax = plt.subplots(figsize=(7, 5))
-    sev = results["defects"]["defect_severity"]
+    sev = MathSeverity = results["defects"]["defect_severity"]
     kd = results["fatigue_knockdown"]
     void = results["defects"]["void_fraction"] * 100
 
@@ -481,6 +487,11 @@ def save_histogram_cai(results):
     ax.hist(cai, bins=35, alpha=0.7, edgecolor="black")
     ax.axvline(CAI_LIMIT, linestyle="--", label=f"Certification Limit = {CAI_LIMIT} MPa")
     ax.axvspan(430, 470, alpha=0.2, color="green", label="Ricks et al. range")
+    
+    # Add explanation of the clipping boundaries
+    ax.text(0.05, 0.90, "Outer peaks represent physical clipping bounds [380, 560] MPa", 
+            transform=ax.transAxes, fontsize=8, color="dimgray", style="italic")
+
     ax.set_xlabel("CAI Strength (MPa)")
     ax.set_ylabel("Frequency")
     ax.set_title("Distribution of CAI Strength")
@@ -494,7 +505,21 @@ def save_histogram_cai(results):
     return fig, path
 
 def save_sensitivity_bar(sensitivity):
-    names = [s[0] for s in sensitivity][::-1]
+    # Format and map variable names beautifully, correcting braid references
+    formatted_names = []
+    for s in sensitivity:
+        name = s[0].replace("_", " ").title()
+        if "Yarn Orientation" in name:
+            name = "Yarn Orientation Angle (°)"
+        elif "Mpa" in name:
+            name = name.replace("Mpa", "(MPa)")
+        elif "Mm" in name:
+            name = name.replace("Mm", "(mm)")
+        elif "C" in name:
+            name = name.replace(" C", " (°C)")
+        formatted_names.append(name)
+        
+    names = formatted_names[::-1]
     values = [s[1] for s in sensitivity][::-1]
     colors = ["green" if s[2] > 0 else "red" for s in sensitivity[::-1]]
 
@@ -557,7 +582,7 @@ def save_parameter_distributions(results):
         "fiber_vol_frac": results["arch"][:, 0],
         "binder_density": results["arch"][:, 1],
         "waviness": results["arch"][:, 2],
-        "braid_angle": results["arch"][:, 3],
+        "yarn_orientation_angle": results["arch"][:, 3],
         "thickness": results["arch"][:, 4],
         "compaction_pressure": results["proc"][:, 0],
         "resin_flow_rate": results["proc"][:, 1],
